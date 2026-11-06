@@ -1,0 +1,128 @@
+# limoboot Configuration File
+# Place this file at /boot/limoboot.conf or /boot/efi/limoboot.conf
+#
+# Syntax:
+#   # Comments start with # or ;
+#   key = value          # Global setting
+#   entry "Name" {       # Boot entry block
+#       key = value
+#   }
+
+# ============================================================================
+# Global Settings
+# ============================================================================
+
+# Boot menu timeout in seconds
+# 0 = instant boot default, -1 = wait forever
+timeout = 5
+
+# Default entry index (0-based)
+default = 0
+
+# Theme: default, dark, light, minimal
+theme = "default"
+
+# Force text mode (disable graphical menu)
+text_mode = false
+
+# Log level: 0=none, 1=error, 2=warn, 3=info, 4=debug
+log_level = 2
+
+# Require Secure Boot (config hash must be enrolled)
+secure_boot = false
+
+# Enable measured boot (TPM event log)
+measured_boot = false
+
+# ============================================================================
+# Boot Entries
+# ============================================================================
+
+# Each entry defines a boot option.
+# Protocols: limoboot, linux, multiboot2, chainload
+
+# Example 1: Linux kernel with initrd
+entry "Linux (Default)" {
+    protocol = "linux"
+    kernel = "/boot/vmlinuz"
+    cmdline = "root=/dev/nvme0n1p2 rw quiet loglevel=3"
+    module = "/boot/initrd.img"
+    # Optional: microcode
+    # module = "/boot/amd-ucode.img"
+    # module = "/boot/intel-ucode.img"
+}
+
+# Example 2: Linux with different command line (recovery)
+entry "Linux (Recovery)" {
+    protocol = "linux"
+    kernel = "/boot/vmlinuz"
+    cmdline = "root=/dev/nvme0n1p2 rw single"
+    module = "/boot/initrd.img"
+}
+
+# Example 3: Custom kernel using native Limoboot Protocol
+# Kernel must be 64-bit ELF linked for higher half
+entry "My OS Kernel" {
+    protocol = "limoboot"
+    kernel = "/boot/kernel.elf"
+    cmdline = "console=tty0 loglevel=4"
+    module = "/boot/initrd.img"
+}
+
+# Example 4: Chainload Windows Boot Manager
+entry "Windows 11" {
+    protocol = "chainload"
+    efi_path = "/EFI/Microsoft/Boot/bootmgfw.efi"
+}
+
+# Example 5: Chainload GRUB
+entry "GRUB" {
+    protocol = "chainload"
+    efi_path = "/EFI/grub/grubx64.efi"
+}
+
+# Example 6: Multiboot2 kernel (64-bit only)
+entry "Other OS (Multiboot2)" {
+    protocol = "multiboot2"
+    kernel = "/boot/other.elf"
+    cmdline = "debug=1"
+}
+
+# Example 7: UEFI Shell
+entry "UEFI Shell" {
+    protocol = "chainload"
+    efi_path = "/EFI/shell/shellx64.efi"
+}
+
+# Example 8: Memtest86+
+entry "Memtest86+" {
+    protocol = "chainload"
+    efi_path = "/EFI/memtest86/memtest.efi"
+}
+
+# ============================================================================
+# Notes
+# ============================================================================
+#
+# Paths are relative to ESP root (EFI System Partition)
+# Use forward slashes, e.g., /boot/kernel.elf
+#
+# For Linux protocol:
+#   - kernel: path to vmlinuz (or vmlinuz-*)
+#   - module: path to initrd (can specify multiple)
+#   - cmdline: kernel command line
+#
+# For Limoboot protocol:
+#   - kernel: path to 64-bit ELF kernel
+#   - module: path to module/initrd (can specify multiple)
+#   - cmdline: kernel command line
+#
+# For Chainload:
+#   - efi_path: path to .efi application
+#
+# For Multiboot2:
+#   - kernel: path to Multiboot2-compliant 64-bit kernel
+#   - cmdline: kernel command line
+#
+# Multiple modules are loaded in order specified.
+# Use 'limoboot config validate' to check syntax.
